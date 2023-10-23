@@ -53,7 +53,7 @@ def translate_audio(audio_filepath, filename):
       st.write(transcript)
 
       # Open the file in write mode ("w") using os.path.join to create a valid path
-      with open(file_path, "w") as file:
+      with open(file_path, "w",  encoding='utf-8') as file:
          # Write the string to the file
          file.write(transcript["text"])
 
@@ -62,7 +62,7 @@ def translate_audio(audio_filepath, filename):
 
       return transcript["text"].replace(".", ".\n")
    else: 
-      with open(file_path, "r") as trans:
+      with open(file_path, "r",  encoding='utf-8') as trans:
          st.write("<h3>Memory</h3>", unsafe_allow_html=True)
          text = {"text": trans.read()}
          #st.write(text)
@@ -132,7 +132,7 @@ def main():
     with st.sidebar:
       df = None
       url_link= st.text_input("Enter Youtube URL")
-    if url_link is None:
+    if url_link is None or url_link == "":
       st.chat_input("Chat with our Model", disabled=True)
     else:
       with st.spinner("Extracting Audio  Process...1/3"):
