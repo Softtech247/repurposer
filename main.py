@@ -1,51 +1,22 @@
-import json
+# Import necessary libraries
 import os
 import pandas as pd
 import streamlit as st
-from dotenv import load_dotenv 
+from dotenv import load_dotenv
 import openai
 from langchain.text_splitter import CharacterTextSplitter
 from base import prompt
-
-#from base import OPENAI_API_KEY, prompt
 from logic import extract_audio
 
+# Load environment variables from .env file
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-def handle_input(query):
-   response = st.session_state.conversation({'question': query}) 
-   st.session_state.chat_histroy = response['chat_history']
-   for i,message in enumerate(st.session_state.chat_histroy):
-      if i %2 ==0:
-         with st.chat_message('user'):
-          st.markdown(message.content)
-      else:
-          with st.chat_message('assistant', avatar="🐨"):
-           st.markdown(message.content)
-    
-def create_and_save_csv(file, filename):
-      filename = filename.replace(" ", "_")
-      if not os.path.exists(f"{filename}.csv"):
-         try:
-            df = pd.read_csv(file, encoding='utf-8')  # Read CSV data into Pandas DataFrame
-         except UnicodeDecodeError:
-            # If utf-8 encoding fails, try with latin-1 encoding
-            df = pd.read_csv(file, encoding='latin-1')
-         filename = f"{filename}.csv"
-         df.to_csv(filename, index=False) 
-      else:
-        try:
-            df = pd.read_csv(file, encoding='utf-8')  # Read CSV data into Pandas DataFrame
-        except UnicodeDecodeError:
-            # If utf-8 encoding fails, try with latin-1 encoding
-            df = pd.read_csv(file, encoding='latin-1')
-   
-      return df  # Return the list of file paths of the saved chunks
 
-
+# Function to transcribe audio from a video
 def translate_audio(audio_filepath, filename):
-   file_path = f"transcript/{filename}.txt"  # Define the file path without the leading '/'
+   # Define the file path without the leading '/'
+   file_path = f"transcript/{filename}.txt"
 
    if not os.path.exists(file_path):
       audio_file = open(audio_filepath, "rb")
@@ -69,68 +40,46 @@ def translate_audio(audio_filepath, filename):
          st.markdown(f"Download the transcript: [Download {filename}.txt]({file_path})")
       return text["text"].replace(".", ".\n")
 
-
-
-   
+# Function to split the transcribed text into chunks
 def text_split(text):
-   text_splitter = CharacterTextSplitter(separator="\n", chunk_size =3000,
-      chunk_overlap = 200, length_function = len)
+   text_splitter = CharacterTextSplitter(separator="\n", chunk_size=3000,
+      chunk_overlap=200, length_function=len)
    chunks = text_splitter.split_text(text)
    return chunks
 
-
+# Function to write social media points
 def write_points(chunks):
-    text_list = []
-    list_single = []
-    for chunk in chunks:
-        # Create a list of messages
-        messages = [
-            {"role": "user", "content": prompt(chunk)}
-        ]
+   text_list = []
+   list_single = []
+   for chunk in chunks:
+      # Create a list of messages
+      messages = [
+          {"role": "user", "content": prompt(chunk)}
+      ]
 
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-0613",
-            messages=messages,
-            max_tokens=1000,
-            temperature=0.7,
-            api_key=OPENAI_API_KEY
-        )
+      response = openai.ChatCompletion.create(
+          model="gpt-3.5-turbo-0613",
+          messages=messages,
+          max_tokens=1000,
+          temperature=0.7,
+          api_key=OPENAI_API_KEY
+      )
 
-        generated_text = response['choices'][0]['message']['content']
-        ##st.write(generated_text)
-        text_list.append(generated_text)
-        # Check if generated_text is empty or invalid JSON
-      #   if not generated_text:
-      #       continue
-      #   try:
-      #       parsed_data = json.loads(generated_text)
-      #       text_list.append(generated_text)
-      #   except json.JSONDecodeError:
-      #       # Handle the case where generated_text is not valid JSON
-      #       continue
-        
+      generated_text = response['choices'][0]['message']['content']
+      text_list.append(generated_text)
+   st.write("## **Social Media Points**")
+   st.write(text_list)
+   return  text_list
 
-   #  for list in text_list:
-   #      for item in list:
-   #          list_single.append(item)
-    st.write(text_list)
-    return  text_list
-
-
+# Main function to run the Streamlit app
 def main():
     openai.api_key =  OPENAI_API_KEY
-    print(OPENAI_API_KEY)
-    #menu = {'Chatbot':"https://google.com",'About Us':"#",'Training':"#"}
-    st.set_page_config(page_title="YOUTUBE VIDEO REPURPOSER 1.0",page_icon="🎀",
+    st.set_page_config(page_title="YOUTUBE VIDEO REPURPOSER 1.0", page_icon="🎀",
                        initial_sidebar_state="auto",)
     st.header("YOUTUBE VIDEO REPURPOSER 1.0")
     st.text("Transcribe YouTube Video to Social media")   
-    if "conversation" not in st.session_state:
-       st.session_state.conversation = None
-
     text = None
     with st.sidebar:
-      df = None
       url_link= st.text_input("Enter Youtube URL")
     if url_link is None or url_link == "":
       st.chat_input("Chat with our Model", disabled=True)
@@ -145,14 +94,8 @@ def main():
            splittext = text_split(text)
            st.write(splittext)
          with st.spinner("Writing Points .... 3/3"):
-            st.write("## **Social Media Points**")
             write_points(splittext)
-     
-         
 
-
-
-
-
+# Entry point of the script
 if __name__ == '__main__':
     main()
