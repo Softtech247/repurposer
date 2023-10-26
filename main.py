@@ -13,37 +13,6 @@ from logic import extract_audio
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-def handle_input(query):
-   response = st.session_state.conversation({'question': query}) 
-   st.session_state.chat_histroy = response['chat_history']
-   for i,message in enumerate(st.session_state.chat_histroy):
-      if i %2 ==0:
-         with st.chat_message('user'):
-          st.markdown(message.content)
-      else:
-          with st.chat_message('assistant', avatar="🐨"):
-           st.markdown(message.content)
-    
-def create_and_save_csv(file, filename):
-      filename = filename.replace(" ", "_")
-      if not os.path.exists(f"{filename}.csv"):
-         try:
-            df = pd.read_csv(file, encoding='utf-8')  # Read CSV data into Pandas DataFrame
-         except UnicodeDecodeError:
-            # If utf-8 encoding fails, try with latin-1 encoding
-            df = pd.read_csv(file, encoding='latin-1')
-         filename = f"{filename}.csv"
-         df.to_csv(filename, index=False) 
-      else:
-        try:
-            df = pd.read_csv(file, encoding='utf-8')  # Read CSV data into Pandas DataFrame
-        except UnicodeDecodeError:
-            # If utf-8 encoding fails, try with latin-1 encoding
-            df = pd.read_csv(file, encoding='latin-1')
-   
-      return df  # Return the list of file paths of the saved chunks
-
-
 def translate_audio(audio_filepath, filename):
    file_path = f"transcript/{filename}.txt"  # Define the file path without the leading '/'
 
@@ -109,14 +78,10 @@ def main():
                        initial_sidebar_state="auto",)
     st.header("YOUTUBE VIDEO REPURPOSER 1.0")
     st.text("Transcribe YouTube Video to Social media")   
-    if "conversation" not in st.session_state:
-       st.session_state.conversation = None
-
     text = None
     with st.sidebar:
-      df = None
       url_link= st.text_input("Enter Youtube URL")
-    if url_link is None:
+    if url_link is None or url_link is "":
       st.chat_input("Chat with our Model", disabled=True)
     else:
       with st.spinner("Extracting Audio  Process...1/3"):
