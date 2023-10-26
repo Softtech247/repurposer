@@ -80,22 +80,26 @@ def main():
     st.text("Transcribe YouTube Video to Social media")   
     text = None
     with st.sidebar:
+      status_progress = "Extracting Audio  Process...1/3"
       url_link= st.text_input("Enter Youtube URL")
     if url_link is None or url_link == "":
       st.chat_input("Chat with our Model", disabled=True)
     else:
-      with st.spinner("Extracting Audio  Process...1/3"):
+      with st.spinner(status_progress):
        filename = extract_audio(url_link.strip(), "resources/")
-       if filename:
-         with st.spinner("Converting Audio Process...2/3"):
-            text =   translate_audio(f"resources/{filename}",filename[:-4])
 
-         with st.spinner("Chunking Text ...."):
-           splittext = text_split(text)
-           st.write(splittext)
-         with st.spinner("Writing Points .... 3/3"):
-            st.write("## **Social Media Points**")
-            write_points(splittext)
+      with st.spinner("Converting Audio Process...2/3"):
+         if filename:
+          text =   translate_audio(f"resources/{filename}",filename[:-4])
+         
+      with st.spinner("Chunking Text ...."):
+         if text:
+            splittext = text_split(text)
+            st.write(splittext)
+            
+      with st.spinner("Writing Points .... 3/3"):
+         st.write("## **Social Media Points**")
+         write_points(splittext)
      
          
 
