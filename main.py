@@ -81,7 +81,7 @@ def main():
     text = None
     with st.sidebar:
       url_link= st.text_input("Enter Youtube URL")
-    if url_link is None or url_link is "":
+    if url_link is None or url_link == "":
       st.chat_input("Chat with our Model", disabled=True)
     else:
       with st.spinner("Extracting Audio  Process...1/3"):
