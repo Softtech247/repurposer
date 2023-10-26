@@ -95,8 +95,8 @@ def main():
       with st.spinner("Chunking Text ...."):
          if text:
             splittext = text_split(text)
-            st.write(splittext)
-            
+            ##st.write(splittext)
+
       with st.spinner("Writing Points .... 3/3"):
          st.write("## **Social Media Points**")
          write_points(splittext)
